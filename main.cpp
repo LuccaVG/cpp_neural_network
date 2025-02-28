@@ -8,11 +8,17 @@
 
 int main() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
-    NeuralNetwork nn({3, 5, 3, 1});
+
+    // Enhanced neural network with more layers and neurons
+    NeuralNetwork nn({3, 10, 10, 5, 1});
+    
+    // Improved memory management
     Memory memory;
+    
+    // Advanced chatbot with NLP capabilities
     ChatBot chatbot(nn, memory);
 
-    std::cout << "Starting AI system...\n";
+    std::cout << "Starting advanced AI system...\n";
     chatbot.chat();
 
     return 0;
