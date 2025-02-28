@@ -18,15 +18,18 @@ REM Compile files
 echo Compiling neural_network.cpp...
 g++ -std=c++17 -Wall -c neural_network.cpp
 
-echo Compiling neural_layer.cpp...
-g++ -std=c++17 -Wall -c neural_layer.cpp
+echo Compiling memory.cpp...
+g++ -std=c++17 -Wall -c memory.cpp
+
+echo Compiling chatbot.cpp...
+g++ -std=c++17 -Wall -c chatbot.cpp
 
 echo Compiling main.cpp...
 g++ -std=c++17 -Wall -c main.cpp
 
 REM Link files
 echo Linking...
-g++ -o nn_prototype main.o neural_network.o neural_layer.o
+g++ -o nn_prototype main.o neural_network.o memory.o chatbot.o
 
 IF %ERRORLEVEL% NEQ 0 (
     echo Build failed!

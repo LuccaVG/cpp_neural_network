@@ -94,6 +94,11 @@ private:
     std::vector<std::string> extractKeywords(const std::string& text);
     void updateConversationContext(const std::string& input, const std::string& response, const std::string& category);
     std::string getCurrentTopic() const;
+
+     // Time-related helper methods
+     std::string getCurrentTimeResponse() const;
+     std::string getCurrentDateResponse() const;  
+     std::string getCurrentDateTimeResponse() const;
     
     // Initialization methods
     void initializeCategories();

@@ -6,6 +6,7 @@
 #include <regex>
 #include <thread>
 #include <chrono>
+#include <iomanip> // Required for std::put_time
 
 // SentimentAnalyzer implementation
 SentimentAnalyzer::SentimentAnalyzer() {
@@ -123,6 +124,40 @@ void ChatBot::chat() {
     std::cout << "ChatBot shutting down. Goodbye!" << std::endl;
 }
 
+// Time-related functions
+std::string ChatBot::getCurrentTimeResponse() const {
+    // Get current time
+    auto now = std::chrono::system_clock::now();
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    
+    // Format time nicely in HH:MM:SS format
+    std::stringstream ss;
+    ss << "The current time is " << std::put_time(std::localtime(&currentTime), "%I:%M:%S %p");
+    return ss.str();
+}
+
+std::string ChatBot::getCurrentDateResponse() const {
+    // Get current date
+    auto now = std::chrono::system_clock::now();
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    
+    // Format date nicely in Month Day, Year format
+    std::stringstream ss;
+    ss << "Today is " << std::put_time(std::localtime(&currentTime), "%B %d, %Y");
+    return ss.str();
+}
+
+std::string ChatBot::getCurrentDateTimeResponse() const {
+    // Get current date and time
+    auto now = std::chrono::system_clock::now();
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    
+    // Format date and time nicely
+    std::stringstream ss;
+    ss << "It is " << std::put_time(std::localtime(&currentTime), "%B %d, %Y at %I:%M:%S %p");
+    return ss.str();
+}
+
 std::string ChatBot::generateResponse(const std::string& input, 
                                      const std::string& sentiment,
                                      const std::string& category) {
@@ -151,7 +186,33 @@ void ChatBot::resetConversation() {
 }
 
 std::string ChatBot::processInput(const std::string& input) {
-    // Try to find direct response patterns first
+    // Convert input to lowercase for easier matching
+    std::string lowerInput = input;
+    std::transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+    
+    // Check for time/date related queries
+    if (lowerInput.find("time") != std::string::npos && 
+        (lowerInput.find("what") != std::string::npos || lowerInput.find("tell") != std::string::npos)) {
+        return getCurrentTimeResponse();
+    }
+    
+    if (lowerInput.find("date") != std::string::npos && 
+        (lowerInput.find("what") != std::string::npos || lowerInput.find("tell") != std::string::npos)) {
+        return getCurrentDateResponse();
+    }
+    
+    if ((lowerInput.find("day") != std::string::npos || lowerInput.find("today") != std::string::npos) &&
+        (lowerInput.find("what") != std::string::npos || lowerInput.find("tell") != std::string::npos)) {
+        return getCurrentDateResponse();
+    }
+    
+    // Check for combined date and time query
+    if ((lowerInput.find("date") != std::string::npos && lowerInput.find("time") != std::string::npos) ||
+        lowerInput.find("now") != std::string::npos) {
+        return getCurrentDateTimeResponse();
+    }
+    
+    // Try to find direct response patterns
     for (const auto& pattern : responsePatterns) {
         std::regex patternRegex(pattern.first, std::regex::icase);
         if (std::regex_search(input, patternRegex)) {

@@ -88,5 +88,11 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "valarray": "cpp"
+    },
+    "verbosity": {
+        "title": "Extractor logging verbosity level.",
+        "description": "Controls the level of verbosity of the extractor. The supported levels are (in order of increasing verbosity):\n  - off\n  - errors\n  - warnings\n  - info or progress\n  - debug or progress+\n  - trace or progress++\n  - progress+++\n",
+        "type": "string",
+        "pattern": "^(off|errors|warnings|(info|progress)|(debug|progress\\+)|(trace|progress\\+\\+)|progress\\+\\+\\+)$"
     }
 }

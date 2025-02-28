@@ -52,8 +52,8 @@ public:
     
     // Core memory operations
     void storeInteraction(const std::string& input, const std::string& response, 
-                          const std::string& category = "general",
-                          const std::string& sentiment = "neutral");
+                         const std::string& category = "general",
+                         const std::string& sentiment = "neutral");
     
     // Enhanced retrieval options
     std::vector<MemoryRecord> retrieveInteractions(size_t count = 10) const;
@@ -109,6 +109,7 @@ private:
     void enqueueBackgroundTask(std::function<void()> task);
     
     // Memory optimization
+    void updateIndexes(const MemoryRecord& record, size_t position);
     void consolidateMemories();
     void applyMemoryDecay();
     void pruneMemories();
@@ -116,18 +117,20 @@ private:
     
     // Helper methods
     std::vector<std::string> extractKeywords(const std::string& text) const;
-    void updateIndexes(const MemoryRecord& record, size_t position);
     void rebuildIndexes();
     double calculateRelevanceScore(const MemoryRecord& record, const std::string& keyword) const;
-    double calculateSemanticSimilarity(const std::vector<std::string>& keywords1, 
-                                     const std::vector<std::string>& keywords2) const;
-    double calculateImportance(const std::string& input, 
-                             const std::string& category, 
-                             const std::string& sentiment) const;
-    double getRecencyScore(time_t timestamp) const;
-    void updateAccessMetadata(size_t index) const;
-    std::string normalizeText(const std::string& text) const;
     MemoryRecord mergeRecords(const MemoryRecord& record1, const MemoryRecord& record2) const;
+    
+    // Added missing helper methods
+    std::string normalizeText(const std::string& text) const;
+    void updateAccessMetadata(size_t index) const;
+    double getRecencyScore(time_t timestamp) const;
+    double calculateSemanticSimilarity(
+        const std::vector<std::string>& keywords1,
+        const std::vector<std::string>& keywords2) const;
+    double calculateImportance(const std::string& input, 
+                              const std::string& category, 
+                              const std::string& sentiment) const;
 };
 
 #endif // MEMORY_H
