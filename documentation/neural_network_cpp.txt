@@ -1,0 +1,90 @@
+#include "neural_network.h"
+
+/**
+ * @brief Constructs a NeuralNetwork with a specified architecture.
+ * @param architecture A vector specifying the number of neurons in each layer.
+ */
+NeuralNetwork::NeuralNetwork(const std::vector<int>& architecture) {
+    for (size_t i = 1; i < architecture.size(); ++i) {
+        layers.emplace_back(NeuralLayer(architecture[i], architecture[i - 1]));
+    }
+}
+
+/**
+ * @brief Trains the neural network using the given training data.
+ * @param inputs The input data for training.
+ * @param targets The target output data for training.
+ * @param learningRate The learning rate for training.
+ * @param epochs The number of training epochs.
+ */
+void NeuralNetwork::train(const std::vector<std::vector<double>>& inputs, const std::vector<std::vector<double>>& targets, double learningRate, int epochs) {
+    for (int epoch = 0; epoch < epochs; ++epoch) {
+        for (size_t i = 0; i < inputs.size(); ++i) {
+            std::vector<double> output = forward(inputs[i]);
+            backward(targets[i]);
+            updateWeights(inputs[i], learningRate);
+        }
+    }
+}
+
+/**
+ * @brief Predicts the output for a given input.
+ * @param input The input data for prediction.
+ * @return The predicted output.
+ */
+std::vector<double> NeuralNetwork::predict(const std::vector<double>& input) {
+    return forward(input);
+}
+
+/**
+ * @brief Performs forward propagation through the network.
+ * @param input The input data for forward propagation.
+ * @return The output of the network after forward propagation.
+ */
+std::vector<double> NeuralNetwork::forward(const std::vector<double>& input) {
+    std::vector<double> currentInput = input;
+    for (auto& layer : layers) {
+        currentInput = layer.activate(currentInput);
+    }
+    return currentInput;
+}
+
+/**
+ * @brief Performs backward propagation through the network.
+ * @param target The target output data for backward propagation.
+ */
+void NeuralNetwork::backward(const std::vector<double>& target) {
+    std::vector<double> deltas;
+    for (int i = layers.size() - 1; i >= 0; --i) {
+        if (i == layers.size() - 1) {
+            deltas.resize(layers[i].getOutputs().size());
+            for (size_t j = 0; j < deltas.size(); ++j) {
+                double output = layers[i].getOutputs()[j];
+                deltas[j] = (target[j] - output) * output * (1.0 - output);
+            }
+        } else {
+            std::vector<double> newDeltas(layers[i].getOutputs().size(), 0.0);
+            for (size_t j = 0; j < layers[i].getOutputs().size(); ++j) {
+                for (size_t k = 0; k < layers[i + 1].getOutputs().size(); ++k) {
+                    newDeltas[j] += deltas[k] * layers[i + 1].getOutputs()[k];
+                }
+                newDeltas[j] *= layers[i].getOutputs()[j] * (1.0 - layers[i].getOutputs()[j]);
+            }
+            deltas = newDeltas;
+        }
+        layers[i].setDeltas(deltas);
+    }
+}
+
+/**
+ * @brief Updates the weights of the network using the given learning rate.
+ * @param inputs The input data for weight updates.
+ * @param learningRate The learning rate for weight updates.
+ */
+void NeuralNetwork::updateWeights(const std::vector<double>& inputs, double learningRate) {
+    std::vector<double> currentInputs = inputs;
+    for (auto& layer : layers) {
+        layer.updateWeights(currentInputs, learningRate);
+        currentInputs = layer.getOutputs();
+    }
+}

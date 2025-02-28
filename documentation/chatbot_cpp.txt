@@ -1,0 +1,140 @@
+#include "chatbot.h"
+#include <cctype>
+#include <curl/curl.h>
+
+/**
+ * @brief Constructs a ChatBot with a specified neural network architecture.
+ * @param architecture A vector specifying the number of neurons in each layer of the neural network.
+ */
+ChatBot::ChatBot(const std::vector<int>& architecture) : neuralNetwork(architecture) {
+    // Initialize web search triggers
+    webSearchTriggers = {"search", "find", "look up", "what is", "who is"};
+}
+
+/**
+ * @brief Processes the user input and generates a response.
+ * @param input The user input.
+ * @return The generated response.
+ */
+std::string ChatBot::processInput(const std::string& input) {
+    if (shouldFetchWebContent(input)) {
+        std::string keyword = extractMainKeyword(input);
+        return fetchWebContent(keyword);
+    } else {
+        std::vector<double> inputVector(input.begin(), input.end());
+        std::vector<double> outputVector = neuralNetwork.predict(inputVector);
+        std::string response(outputVector.begin(), outputVector.end());
+        return response;
+    }
+}
+
+/**
+ * @brief Trains the chatbot using the given training data.
+ * @param inputs The input data for training.
+ * @param targets The target output data for training.
+ * @param learningRate The learning rate for training.
+ * @param epochs The number of training epochs.
+ */
+void ChatBot::train(const std::vector<std::vector<double>>& inputs, const std::vector<std::vector<double>>& targets, double learningRate, int epochs) {
+    neuralNetwork.train(inputs, targets, learningRate, epochs);
+}
+
+/**
+ * @brief Loads memory data from a file.
+ * @param filename The name of the file from which to load the data.
+ */
+void ChatBot::loadMemory(const std::string& filename) {
+    memory.loadFromFile(filename);
+}
+
+/**
+ * @brief Saves memory data to a file.
+ * @param filename The name of the file to which to save the data.
+ */
+void ChatBot::saveMemory(const std::string& filename) const {
+    memory.saveToFile(filename);
+}
+
+/**
+ * @brief Checks if the input contains any web search triggers.
+ * @param input The user input.
+ * @return True if the input contains a web search trigger, false otherwise.
+ */
+bool ChatBot::shouldFetchWebContent(const std::string& input) {
+    std::string lowercaseInput = input;
+    std::transform(lowercaseInput.begin(), lowercaseInput.end(), lowercaseInput.begin(), ::tolower);
+
+    for (const auto& trigger : webSearchTriggers) {
+        if (lowercaseInput.find(trigger) != std::string::npos) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief Fetches web content based on the given query.
+ * @param query The query for fetching web content.
+ * @return The fetched web content.
+ */
+std::string ChatBot::fetchWebContent(const std::string& query) {
+    CURL* curl;
+    CURLcode res;
+    std::string response;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+    if (curl) {
+        std::string url = "https://www.example.com/search?q=" + query;
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        }
+
+        curl_easy_cleanup(curl);
+    }
+    curl_global_cleanup();
+
+    return response;
+}
+
+/**
+ * @brief Extracts the main keyword from the user input.
+ * @param input The user input.
+ * @return The extracted main keyword.
+ */
+std::string ChatBot::extractMainKeyword(const std::string& input) {
+    // Extract keywords
+    auto keywords = extractKeywords(input);
+    if (!keywords.empty()) {
+        // Return the most frequent keyword in conversation history
+        std::map<std::string, int> keywordFrequency;
+        for (const auto& keyword : keywords) {
+            keywordFrequency[keyword]++;
+        }
+        auto bestKeyword = std::max_element(keywordFrequency.begin(), keywordFrequency.end(),
+                                            [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
+                                                return a.second < b.second;
+                                            });
+        return bestKeyword->first;
+    }
+    return "";
+}
+
+/**
+ * @brief Callback function for curl to write data.
+ * @param contents The data to be written.
+ * @param size The size of each data element.
+ * @param nmemb The number of data elements.
+ * @param userp The user data pointer.
+ * @return The number of bytes written.
+ */
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}

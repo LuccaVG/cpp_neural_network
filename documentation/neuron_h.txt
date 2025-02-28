@@ -1,0 +1,145 @@
+#include "neuron.h"
+
+/**
+ * @brief Constructs a Neuron with a specified number of inputs.
+ * @param numInputs The number of inputs to the neuron.
+ */
+Neuron::Neuron(int numInputs) {
+    weights.resize(numInputs);
+    std::generate(weights.begin(), weights.end(), []() { return static_cast<double>(rand()) / RAND_MAX; });
+    bias = static_cast<double>(rand()) / RAND_MAX;
+    velocity.resize(numInputs, 0.0);
+    cache.resize(numInputs, 0.0);
+    velocityBias = 0.0;
+    cacheBias = 0.0;
+}
+
+/**
+ * @brief Activates the neuron with the given inputs.
+ * @param inputs The inputs to the neuron.
+ * @return The output of the neuron after activation.
+ */
+double Neuron::activate(const std::vector<double>& inputs) {
+    double sum = bias;
+    for (size_t i = 0; i < weights.size(); ++i) {
+        sum += weights[i] * inputs[i];
+    }
+    output = sigmoid(sum); // Change this to use different activation functions as needed
+    return output;
+}
+
+/**
+ * @brief Gets the output of the neuron.
+ * @return The output of the neuron.
+ */
+double Neuron::getOutput() const {
+    return output;
+}
+
+/**
+ * @brief Sets the weights of the neuron.
+ * @param newWeights The new weights to be set.
+ */
+void Neuron::setWeights(const std::vector<double>& newWeights) {
+    weights = newWeights;
+}
+
+/**
+ * @brief Gets the weights of the neuron.
+ * @return The weights of the neuron.
+ */
+std::vector<double> Neuron::getWeights() const {
+    return weights;
+}
+
+/**
+ * @brief Sets the delta value for the neuron.
+ * @param delta The delta value to be set.
+ */
+void Neuron::setDelta(double delta) {
+    this->delta = delta;
+}
+
+/**
+ * @brief Gets the delta value of the neuron.
+ * @return The delta value of the neuron.
+ */
+double Neuron::getDelta() const {
+    return delta;
+}
+
+/**
+ * @brief Updates the weights of the neuron using the given inputs and learning rate.
+ * @param inputs The inputs to the neuron.
+ * @param learningRate The learning rate for weight updates.
+ */
+void Neuron::updateWeights(const std::vector<double>& inputs, double learningRate) {
+    for (size_t i = 0; i < weights.size(); ++i) {
+        weights[i] += learningRate * delta * inputs[i];
+    }
+    bias += learningRate * delta;
+}
+
+/**
+ * @brief Updates the weights of the neuron using an optimizer.
+ * @param inputs The inputs to the neuron.
+ * @param learningRate The learning rate for weight updates.
+ * @param t The current time step for the optimizer.
+ */
+void Neuron::updateWeightsWithOptimizer(const std::vector<double>& inputs, double learningRate, int t) {
+    // Implement optimizer updates (e.g., Adam, RMSProp) here
+}
+
+/**
+ * @brief Sigmoid activation function.
+ * @param x The input value.
+ * @return The activated value.
+ */
+double Neuron::sigmoid(double x) const {
+    return 1.0 / (1.0 + exp(-x));
+}
+
+/**
+ * @brief Derivative of the sigmoid function.
+ * @param x The input value.
+ * @return The derivative value.
+ */
+double Neuron::sigmoidDerivative(double x) const {
+    return x * (1.0 - x);
+}
+
+/**
+ * @brief ReLU activation function.
+ * @param x The input value.
+ * @return The activated value.
+ */
+double Neuron::relu(double x) const {
+    return std::max(0.0, x);
+}
+
+/**
+ * @brief Derivative of the ReLU function.
+ * @param x The input value.
+ * @return The derivative value.
+ */
+double Neuron::reluDerivative(double x) const {
+    return x > 0.0 ? 1.0 : 0.0;
+}
+
+/**
+ * @brief Tanh activation function.
+ * @param x The input value.
+ * @return The activated value.
+ */
+double Neuron::tanhActivation(double x) const {
+    return tanh(x);
+}
+
+/**
+ * @brief Derivative of the Tanh function.
+ * @param x The input value.
+ * @return The derivative value.
+ */
+double Neuron::tanhDerivative(double x) const {
+    return 1.0 - x * x;
+}
