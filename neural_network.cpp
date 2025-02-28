@@ -350,9 +350,10 @@ if (options.optimizer == Optimizer::ADAM) {
 }
 
 void NeuralNetwork::updateWeightsWithOptimizer(int layerIndex, int neuronIndex, int weightIndex, 
-                        double gradient, const TrainingOptions& options, int t) {
+    double gradient, const TrainingOptions& options, int t) {
 switch (options.optimizer) {
 case Optimizer::MOMENTUM:
+{
 // Momentum update
 velocities[layerIndex][neuronIndex][weightIndex] = 
 options.momentum * velocities[layerIndex][neuronIndex][weightIndex] - 
@@ -360,9 +361,11 @@ options.learningRate * gradient;
 weights[layerIndex][neuronIndex][weightIndex] += 
 velocities[layerIndex][neuronIndex][weightIndex];
 break;
+}
 
 case Optimizer::ADAM:
-// Adam optimizer update
+{
+// Adam optimizer update - Note the curly braces to create a block
 velocities[layerIndex][neuronIndex][weightIndex] = 
 options.beta1 * velocities[layerIndex][neuronIndex][weightIndex] + 
 (1 - options.beta1) * gradient;
@@ -373,15 +376,17 @@ options.beta2 * cacheWeights[layerIndex][neuronIndex][weightIndex] +
 
 // Bias correction
 double m_corrected = velocities[layerIndex][neuronIndex][weightIndex] / 
-         (1 - std::pow(options.beta1, t));
+(1 - std::pow(options.beta1, t));
 double v_corrected = cacheWeights[layerIndex][neuronIndex][weightIndex] / 
-         (1 - std::pow(options.beta2, t));
-         
+(1 - std::pow(options.beta2, t));
+
 weights[layerIndex][neuronIndex][weightIndex] -= 
 options.learningRate * m_corrected / (std::sqrt(v_corrected) + options.epsilon);
 break;
+}
 
 case Optimizer::RMSPROP:
+{
 // RMSProp update
 cacheWeights[layerIndex][neuronIndex][weightIndex] = 
 0.9 * cacheWeights[layerIndex][neuronIndex][weightIndex] + 
@@ -391,27 +396,33 @@ weights[layerIndex][neuronIndex][weightIndex] -=
 options.learningRate * gradient / 
 (std::sqrt(cacheWeights[layerIndex][neuronIndex][weightIndex]) + options.epsilon);
 break;
+}
 
 case Optimizer::SGD:
 default:
+{
 // Standard SGD update
 weights[layerIndex][neuronIndex][weightIndex] -= options.learningRate * gradient;
 break;
 }
 }
+}
 
 void NeuralNetwork::updateBiasWithOptimizer(int layerIndex, int neuronIndex, 
-                    double gradient, const TrainingOptions& options, int t) {
+double gradient, const TrainingOptions& options, int t) {
 switch (options.optimizer) {
 case Optimizer::MOMENTUM:
+{
 // Momentum update for bias
 velocitiesBias[layerIndex][neuronIndex] = 
 options.momentum * velocitiesBias[layerIndex][neuronIndex] - 
 options.learningRate * gradient;
 biases[layerIndex][neuronIndex] += velocitiesBias[layerIndex][neuronIndex];
 break;
+}
 
 case Optimizer::ADAM:
+{
 // Adam optimizer update for bias
 velocitiesBias[layerIndex][neuronIndex] = 
 options.beta1 * velocitiesBias[layerIndex][neuronIndex] + 
@@ -423,15 +434,17 @@ options.beta2 * cacheBias[layerIndex][neuronIndex] +
 
 // Bias correction
 double m_corrected = velocitiesBias[layerIndex][neuronIndex] / 
-         (1 - std::pow(options.beta1, t));
+(1 - std::pow(options.beta1, t));
 double v_corrected = cacheBias[layerIndex][neuronIndex] / 
-         (1 - std::pow(options.beta2, t));
-         
+(1 - std::pow(options.beta2, t));
+
 biases[layerIndex][neuronIndex] -= 
 options.learningRate * m_corrected / (std::sqrt(v_corrected) + options.epsilon);
 break;
+}
 
 case Optimizer::RMSPROP:
+{
 // RMSProp update for bias
 cacheBias[layerIndex][neuronIndex] = 
 0.9 * cacheBias[layerIndex][neuronIndex] + 
@@ -441,12 +454,15 @@ biases[layerIndex][neuronIndex] -=
 options.learningRate * gradient / 
 (std::sqrt(cacheBias[layerIndex][neuronIndex]) + options.epsilon);
 break;
+}
 
 case Optimizer::SGD:
 default:
-// Standard SGD update for bias
-biases[layerIndex][neuronIndex] -= options.learningRate * gradient;
+{
+    // Standard SGD update for bias
+    biases[layerIndex][neuronIndex] -= options.learningRate * gradient;
 break;
+}
 }
 }
 

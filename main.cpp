@@ -1,108 +1,65 @@
-#pragma once
+// Remove #pragma once - this is only for header files
 
+#include <iostream>
 #include <vector>
-#include <memory>
-#include <string>
-#include <map>
-#include "neural_layer.h"
+#include "neural_network.h"
 
-class NeuralNetwork {
-public:
-    // Enums for activation functions and optimizers
-    enum class ActivationFunction {
-        SIGMOID,
-        RELU,
-        LEAKY_RELU,
-        TANH,
-        LINEAR,
-        SOFTMAX
+// Define a proper main function
+int main() {
+    std::cout << "Neural Network Prototype" << std::endl;
+    
+    // Example usage:
+    // Define network architecture (input layer -> hidden layer -> output layer)
+    std::vector<int> layers = {2, 4, 1};  // 2 inputs, 4 neurons in hidden layer, 1 output
+    
+    // Create neural network with ReLU for hidden layers and sigmoid for output
+    NeuralNetwork network(
+        layers, 
+        NeuralNetwork::ActivationFunction::RELU, 
+        NeuralNetwork::ActivationFunction::SIGMOID
+    );
+    
+    // Define some training data (XOR problem)
+    std::vector<std::vector<double>> inputs = {
+        {0, 0},
+        {0, 1},
+        {1, 0},
+        {1, 1}
     };
     
-    enum class Optimizer {
-        SGD,
-        MOMENTUM,
-        RMSPROP,
-        ADAM
+    std::vector<std::vector<double>> targets = {
+        {0},
+        {1},
+        {1},
+        {0}
     };
     
-    // Training options struct
-    struct TrainingOptions {
-        int epochs = 100;
-        double learningRate = 0.01;
-        int batchSize = 32;
-        Optimizer optimizer = Optimizer::SGD;
-        double momentum = 0.9;           // For MOMENTUM and ADAM
-        double beta1 = 0.9;              // For ADAM (momentum)
-        double beta2 = 0.999;            // For ADAM (RMSProp)
-        double epsilon = 1e-8;           // For ADAM and RMSProp
-        bool useL1Regularization = false;
-        bool useL2Regularization = false;
-        double l1Lambda = 0.0;
-        double l2Lambda = 0.0;
-        bool useDropout = false;
-        double dropoutRate = 0.0;
-        bool useBatchNormalization = false;
-        bool useEarlyStopping = false;
-        int patienceEpochs = 10;
-        double earlyStoppingDelta = 0.001;
-    };
+    // Set up training options
+    NeuralNetwork::TrainingOptions options;
+    options.epochs = 1000;
+    options.learningRate = 0.01;
+    options.optimizer = NeuralNetwork::Optimizer::ADAM;
+    options.batchSize = 4;  // Full batch
     
-private:
-    std::vector<NeuralLayer> layers;
-    std::vector<int> layerSizes;
-    ActivationFunction hiddenActivation;
-    ActivationFunction outputActivation;
+    // Train network
+    std::cout << "Training neural network..." << std::endl;
+    network.train(inputs, targets, options);
     
-    // Optimizer state variables
-    std::vector<std::vector<std::vector<double>>> velocities;    // For momentum
-    std::vector<std::vector<std::vector<double>>> cacheWeights;  // For RMSProp/ADAM
-    std::vector<std::vector<double>> velocitiesBias;
-    std::vector<std::vector<double>> cacheBias;
+    // Evaluate network
+    double accuracy = network.evaluateAccuracy(inputs, targets);
+    std::cout << "Accuracy: " << accuracy * 100 << "%" << std::endl;
     
-    // Internal helper methods
-    void initializeOptimizer(const TrainingOptions& options);
-    void updateWeightsWithOptimizer(int layerIndex, int neuronIndex, int weightIndex, 
-                                   double gradient, const TrainingOptions& options, int t);
-    void updateBiasWithOptimizer(int layerIndex, int neuronIndex, 
-                                double gradient, const TrainingOptions& options, int t);
-    std::function<double(double)> getActivationFunction(ActivationFunction func);
-    std::function<double(double)> getActivationDerivative(ActivationFunction func);
-    std::vector<double> applySoftmax(const std::vector<double>& inputs);
-    double calculateLoss(const std::vector<double>& outputs, const std::vector<double>& targets);
+    // Test network
+    std::cout << "\nTesting network predictions:" << std::endl;
+    for (size_t i = 0; i < inputs.size(); i++) {
+        std::vector<double> output = network.predict(inputs[i]);
+        std::cout << "Input: [" << inputs[i][0] << ", " << inputs[i][1] << "]"
+                  << " -> Expected: " << targets[i][0]
+                  << ", Predicted: " << output[0] << std::endl;
+    }
     
-public:
-    // Constructor with layer configuration
-    NeuralNetwork(const std::vector<int>& layerSizes, 
-                 ActivationFunction hiddenActivation = ActivationFunction::SIGMOID,
-                 ActivationFunction outputActivation = ActivationFunction::SIGMOID);
+    // Print model summary
+    std::cout << "\n" << network.getModelSummary() << std::endl;
     
-    // Forward pass - predict output
-    std::vector<double> predict(const std::vector<double>& inputs);
-    
-    // Training methods
-    void train(const std::vector<std::vector<double>>& inputs, 
-              const std::vector<std::vector<double>>& targets, 
-              const TrainingOptions& options);
-              
-    double trainOnBatch(const std::vector<std::vector<double>>& batchInputs,
-                       const std::vector<std::vector<double>>& batchTargets,
-                       const TrainingOptions& options);
-                       
-    // Evaluation methods
-    double evaluateAccuracy(const std::vector<std::vector<double>>& inputs, 
-                           const std::vector<std::vector<double>>& targets);
-                           
-    double evaluateLoss(const std::vector<std::vector<double>>& inputs, 
-                       const std::vector<std::vector<double>>& targets);
-                       
-    std::map<std::string, double> evaluateBinaryClassificationMetrics(
-        const std::vector<std::vector<double>>& inputs, 
-        const std::vector<std::vector<double>>& targets);
-    
-    // Model serialization
-    void saveModel(const std::string& filename);
-    void loadModel(const std::string& filename);
-    
-    // Utility methods
-    std::string getModelSummary() const;
-};
+    return 0;
+}
