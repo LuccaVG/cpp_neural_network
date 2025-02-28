@@ -8,11 +8,36 @@
 #include <unordered_map>
 #include <regex>
 #include <future>
-#include <nlohmann/json.hpp>
+#include <sstream>
+// Change the include path to use the local json.hpp file
+#include "json.hpp"
 
-// Forward declaration
-class Memory;
-class NeuralNetwork;
+// Curl buffer structure for web requests
+struct CurlBuffer {
+    char* data;
+    size_t size;
+    
+    CurlBuffer() : data(nullptr), size(0) {}
+    ~CurlBuffer() { if (data) free(data); }
+};
+
+// Callback function for curl
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t realsize = size * nmemb;
+    CurlBuffer* buffer = static_cast<CurlBuffer*>(userp);
+    
+    char* ptr = static_cast<char*>(realloc(buffer->data, buffer->size + realsize + 1));
+    if (!ptr) {
+        return 0;  // Out of memory
+    }
+    
+    buffer->data = ptr;
+    memcpy(&(buffer->data[buffer->size]), contents, realsize);
+    buffer->size += realsize;
+    buffer->data[buffer->size] = 0;
+    
+    return realsize;
+}
 
 // Sentiment analysis component
 class SentimentAnalyzer {
@@ -37,12 +62,15 @@ public:
     void chat();
     std::string generateResponse(const std::string& input, const std::string& sentiment = "neutral", 
                                 const std::string& category = "general");
+    void resetConversation();
     
 private:
     NeuralNetwork& nn;
     Memory& memory;
     SentimentAnalyzer sentimentAnalyzer;
     bool isRunning;
+    std::regex factualQuestionPattern;
+    std::vector<std::string> webSearchTriggers;
     
     // Pattern recognition
     std::unordered_map<std::string, std::string> categoryPatterns;
@@ -66,7 +94,6 @@ private:
     std::vector<std::string> extractKeywords(const std::string& text);
     void updateConversationContext(const std::string& input, const std::string& response, const std::string& category);
     std::string getCurrentTopic() const;
-    void resetConversation();
     
     // Initialization methods
     void initializeCategories();

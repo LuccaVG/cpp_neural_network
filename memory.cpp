@@ -11,7 +11,8 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <nlohmann/json.hpp>
+// Change the include path to use the local json.hpp file
+#include "json.hpp"
 
 using json = nlohmann::json;
 
@@ -35,7 +36,7 @@ MemoryRecord::MemoryRecord(
     lastAccessTime(timestamp) {}
 
 // Memory implementation
-Memory::Memory(size_t capacity) : maxCapacity(capacity) {
+Memory::Memory(size_t capacity) : maxCapacity(capacity), isRunning(false) {
     // Initialize the task queue for background processing
     startBackgroundWorker();
 }
@@ -829,22 +830,16 @@ MemoryRecord Memory::mergeRecords(const MemoryRecord& record1, const MemoryRecor
         primary.category,
         primary.sentiment,
         mergedKeywords,
-        mergedImportance,#include "memory.h"
-#include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <ctime>
-#include <chrono>
-#include <iomanip>
-#include <unordered_set>
-#include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;
+        mergedImportance,
+        mergedTimestamp
+    );
+    
+    // Set access metadata
+    mergedRecord.accessCount = mergedAccessCount;
+    mergedRecord.lastAccessTime = mergedLastAccess;
+    
+    return mergedRecord;
+}
 
 // Memory Record implementation
 MemoryRecord::MemoryRecord(
@@ -866,7 +861,7 @@ MemoryRecord::MemoryRecord(
     lastAccessTime(timestamp) {}
 
 // Memory implementation
-Memory::Memory(size_t capacity) : maxCapacity(capacity) {
+Memory::Memory(size_t capacity) : maxCapacity(capacity), isRunning(true) {
     // Initialize the task queue for background processing
     startBackgroundWorker();
 }
@@ -1653,8 +1648,8 @@ MemoryRecord Memory::mergeRecords(const MemoryRecord& record1, const MemoryRecor
     // Use most recent access time
     time_t mergedLastAccess = std::max(record1.lastAccessTime, record2.lastAccessTime);
     
-    // Create merged record
-    MemoryRecord mergedRecord(
+      // Create merged record
+      MemoryRecord mergedRecord(
         primary.input,
         primary.response,
         primary.category,
