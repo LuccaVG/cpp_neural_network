@@ -1,5 +1,5 @@
 ## UNDER DEVELOPMENT ##
-## REWORK IN PROGRESS ##
+   REWORK IN PROGRESS 
 
 # Neural Network Library
 
