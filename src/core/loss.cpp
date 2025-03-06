@@ -1,122 +1,91 @@
 #include "loss.h"
 #include <cmath>
+#include <algorithm>
+#include <numeric>
 #include <stdexcept>
-#include <vector>
 
-double Loss::calculate(const std::vector<double>& predicted, 
-                       const std::vector<double>& target,
-                       LossType type) {
-    if (predicted.size() != target.size()) {
-        throw std::invalid_argument("Predicted and target size mismatch");
-    }
-    
-    switch (type) {
-        case LossType::MEAN_SQUARED_ERROR: {
-            double sum = 0.0;
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double diff = predicted[i] - target[i];
-                sum += diff * diff;
-            }
-            return sum / predicted.size();
-        }
-        
-        case LossType::BINARY_CROSS_ENTROPY: {
-            double sum = 0.0;
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double p = std::max(1e-10, std::min(1.0 - 1e-10, predicted[i]));
-                sum += target[i] * std::log(p) + (1.0 - target[i]) * std::log(1.0 - p);
-            }
-            return -sum / predicted.size();
-        }
-        
-        case LossType::CATEGORICAL_CROSS_ENTROPY: {
-            double sum = 0.0;
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double p = std::max(1e-10, predicted[i]);
-                sum += target[i] * std::log(p);
-            }
-            return -sum;
-        }
-        
-        case LossType::HUBER_LOSS: {
-            const double delta = 1.0;
-            double sum = 0.0;
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double diff = std::abs(predicted[i] - target[i]);
-                if (diff <= delta) {
-                    sum += 0.5 * diff * diff;
-                } else {
-                    sum += delta * (diff - 0.5 * delta);
-                }
-            }
-            return sum / predicted.size();
-        }
-        
-        case LossType::MEAN_ABSOLUTE_ERROR: {
-            double sum = 0.0;
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                sum += std::abs(predicted[i] - target[i]);
-            }
-            return sum / predicted.size();
-        }
-        
-        default:
-            throw std::runtime_error("Unsupported loss function");
-    }
+double Loss::calculate(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    // This should be a pure virtual function, so implementation should be in derived classes
+    throw std::runtime_error("calculate() called on base Loss class");
 }
 
-std::vector<double> Loss::gradient(const std::vector<double>& predicted,
-                                    const std::vector<double>& target,
-                                    LossType type) {
+std::vector<double> Loss::calculateGradient(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    // This should be a pure virtual function, so implementation should be in derived classes
+    throw std::runtime_error("calculateGradient() called on base Loss class");
+}
+
+// MeanSquaredError implementation
+double MeanSquaredError::calculate(const std::vector<double>& predicted, const std::vector<double>& target) const {
     if (predicted.size() != target.size()) {
-        throw std::invalid_argument("Predicted and target size mismatch");
+        throw std::invalid_argument("Predicted and target sizes don't match");
+    }
+    
+    double sum = 0.0;
+    for (size_t i = 0; i < predicted.size(); ++i) {
+        double diff = predicted[i] - target[i];
+        sum += diff * diff;
+    }
+    return sum / predicted.size();
+}
+
+std::vector<double> MeanSquaredError::calculateGradient(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    if (predicted.size() != target.size()) {
+        throw std::invalid_argument("Predicted and target sizes don't match");
     }
     
     std::vector<double> grad(predicted.size());
+    for (size_t i = 0; i < predicted.size(); ++i) {
+        grad[i] = 2.0 * (predicted[i] - target[i]) / predicted.size();
+    }
+    return grad;
+}
+
+// BinaryCrossEntropy implementation
+double BinaryCrossEntropy::calculate(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    if (predicted.size() != target.size()) {
+        throw std::invalid_argument("Predicted and target sizes don't match");
+    }
     
-    switch (type) {
-        case LossType::MEAN_SQUARED_ERROR:
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                grad[i] = 2.0 * (predicted[i] - target[i]) / predicted.size();
-            }
-            break;
-            
-        case LossType::BINARY_CROSS_ENTROPY:
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double p = std::max(1e-10, std::min(1.0 - 1e-10, predicted[i]));
-                grad[i] = (p - target[i]) / (p * (1.0 - p) * predicted.size());
-            }
-            break;
-            
-        case LossType::CATEGORICAL_CROSS_ENTROPY:
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                grad[i] = (predicted[i] - target[i]);
-            }
-            break;
-            
-        case LossType::HUBER_LOSS: {
-            const double delta = 1.0;
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double diff = predicted[i] - target[i];
-                if (std::abs(diff) <= delta) {
-                    grad[i] = diff / predicted.size();
-                } else {
-                    grad[i] = ((diff > 0.0) ? delta : -delta) / predicted.size();
-                }
-            }
-            break;
-        }
-            
-        case LossType::MEAN_ABSOLUTE_ERROR:
-            for (size_t i = 0; i < predicted.size(); ++i) {
-                double diff = predicted[i] - target[i];
-                grad[i] = ((diff > 0.0) ? 1.0 : -1.0) / predicted.size();
-            }
-            break;
-            
-        default:
-            throw std::runtime_error("Unsupported loss function gradient");
+    const double epsilon = 1e-10; // To avoid log(0)
+    double sum = 0.0;
+    
+    for (size_t i = 0; i < predicted.size(); ++i) {
+        double p = std::max(std::min(predicted[i], 1.0 - epsilon), epsilon);
+        sum += target[i] * std::log(p) + (1.0 - target[i]) * std::log(1.0 - p);
+    }
+    
+    return -sum / predicted.size();
+}
+
+std::vector<double> BinaryCrossEntropy::calculateGradient(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    if (predicted.size() != target.size()) {
+        throw std::invalid_argument("Predicted and target sizes don't match");
+    }
+    
+    const double epsilon = 1e-10;
+    std::vector<double> grad(predicted.size());
+    
+    for (size_t i = 0; i < predicted.size(); ++i) {
+        double p = std::max(std::min(predicted[i], 1.0 - epsilon), epsilon);
+        grad[i] = -(target[i] / p - (1.0 - target[i]) / (1.0 - p)) / predicted.size();
     }
     
     return grad;
 }
+
+// Factory method implementation
+std::unique_ptr<Loss> Loss::create(LossType type) {
+    switch (type) {
+        case LossType::MEAN_SQUARED_ERROR:
+            return std::make_unique<MeanSquaredError>();
+        case LossType::BINARY_CROSS_ENTROPY:
+            return std::make_unique<BinaryCrossEntropy>();
+        case LossType::CATEGORICAL_CROSS_ENTROPY:
+            return std::make_unique<CategoricalCrossEntropy>();
+        default:
+            throw std::invalid_argument("Unsupported loss function type");
+    }
+}
+
+// Remove or modify the line that's causing the "no member gradient" error
+// Likely on line 68 - replace with proper implementation or remove it

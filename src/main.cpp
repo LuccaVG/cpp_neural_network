@@ -1,27 +1,81 @@
 #include <iostream>
+#include <vector>
+#include <memory>
+#include <random>
+#include <cmath>
 #include "neural_network.h"
+#include "layers/dense_layer.h"
+#include "core/types.h"
+
+// Helper function to print vectors
+void printVector(const std::vector<double>& vec) {
+    std::cout << "[";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i];
+        if (i < vec.size() - 1) std::cout << ", ";
+    }
+    std::cout << "]" << std::endl;
+}
 
 int main() {
-    // Initialize the neural network
+    // Create a neural network
     NeuralNetwork nn;
 
-    // Load data (this is a placeholder, implement your data loading logic)
-    std::vector<std::vector<double>> trainingData; // Load your training data here
-    std::vector<std::vector<double>> trainingLabels; // Load your training labels here
+    // Add layers
+    nn.addLayer(std::make_unique<DenseLayer>(2, 4, ActivationType::RELU));
+    nn.addLayer(std::make_unique<DenseLayer>(4, 1, ActivationType::SIGMOID));
 
-    // Train the neural network
-    nn.train(trainingData, trainingLabels, 1000, 0.01); // 1000 epochs, learning rate of 0.01
+    // Compile the network
+    nn.compile(OptimizerType::ADAM, 0.01);
 
-    // Test the neural network (this is a placeholder, implement your testing logic)
-    std::vector<std::vector<double>> testData; // Load your test data here
-    auto predictions = nn.predict(testData);
+    // Create XOR training data
+    std::vector<std::vector<double>> xorInputs = {
+        {0, 0},
+        {0, 1},
+        {1, 0},
+        {1, 1}
+    };
+    
+    std::vector<std::vector<double>> xorOutputs = {
+        {0},
+        {1},
+        {1},
+        {0}
+    };
 
-    // Output predictions (this is a placeholder, implement your output logic)
-    for (const auto& prediction : predictions) {
-        for (const auto& value : prediction) {
-            std::cout << value << " ";
-        }
-        std::cout << std::endl;
+    // Train the network
+    std::cout << "Training the network..." << std::endl;
+    nn.fit(xorInputs, xorOutputs, 10000, 4);
+
+    // Test the network
+    std::cout << "\nTesting the network:" << std::endl;
+    for (size_t i = 0; i < xorInputs.size(); ++i) {
+        // Fix: Using predict with a single sample (1D vector)
+        std::vector<double> prediction = nn.predict(xorInputs[i]);
+        
+        std::cout << "Input: [" << xorInputs[i][0] << ", " << xorInputs[i][1] << "] ";
+        std::cout << "Predicted: ";
+        printVector(prediction);
+        std::cout << "Expected: [" << xorOutputs[i][0] << "]" << std::endl;
+    }
+
+    // Save the trained model
+    nn.save("xor_model.dat");
+    std::cout << "\nModel saved to xor_model.dat" << std::endl;
+
+    std::cout << "\nTrying to load and use the model:" << std::endl;
+    
+    // Create a new network and load the saved model
+    NeuralNetwork loadedNN;
+    loadedNN.load("xor_model.dat");
+    
+    // Test the loaded network
+    for (size_t i = 0; i < xorInputs.size(); ++i) {
+        std::vector<double> prediction = loadedNN.predict(xorInputs[i]);
+        
+        std::cout << "Input: [" << xorInputs[i][0] << ", " << xorInputs[i][1] << "] ";
+        std::cout << "Predicted: ";
+        printVector(prediction);
     }
 
     return 0;
