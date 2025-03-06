@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Neural Network Library
 
 This project is a comprehensive implementation of a neural network library in C++. It provides functionality for building, training, and using neural networks for various machine learning tasks. The library supports multiple layer types, activation functions, optimizers, and training methods.
