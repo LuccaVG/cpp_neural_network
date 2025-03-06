@@ -87,7 +87,9 @@
         "semaphore": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "cstdarg": "cpp",
+        "cinttypes": "cpp"
     },
     "verbosity": {
         "title": "Extractor logging verbosity level.",
