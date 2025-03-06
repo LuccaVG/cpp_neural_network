@@ -92,4 +92,4 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 =======
 # cpp_neural_network_and_chatbot.
 
-# Version: Pre Alpha 1.0
+# Version: Pre Alpha 1.01
