@@ -1,0 +1,58 @@
+#include "neural_layer.h"
+
+/**
+ * @brief Constructs a NeuralLayer with a specified number of neurons and inputs per neuron.
+ * @param numNeurons The number of neurons in the layer.
+ * @param numInputsPerNeuron The number of inputs each neuron receives.
+ */
+NeuralLayer::NeuralLayer(int numNeurons, int numInputsPerNeuron) {
+    for (int i = 0; i < numNeurons; ++i) {
+        neurons.emplace_back(numInputsPerNeuron);
+    }
+}
+
+/**
+ * @brief Activates the layer with the given inputs.
+ * @param inputs The inputs to the layer.
+ * @return The outputs of the layer after activation.
+ */
+std::vector<double> NeuralLayer::activate(const std::vector<double>& inputs) {
+    std::vector<double> outputs;
+    for (auto& neuron : neurons) {
+        outputs.push_back(neuron.activate(inputs));
+    }
+    return outputs;
+}
+
+/**
+ * @brief Gets the outputs of the layer.
+ * @return The outputs of the layer.
+ */
+std::vector<double> NeuralLayer::getOutputs() const {
+    std::vector<double> outputs;
+    for (const auto& neuron : neurons) {
+        outputs.push_back(neuron.getOutput());
+    }
+    return outputs;
+}
+
+/**
+ * @brief Sets the deltas for the neurons in the layer.
+ * @param deltas The deltas to be set.
+ */
+void NeuralLayer::setDeltas(const std::vector<double>& deltas) {
+    for (size_t i = 0; i < neurons.size(); ++i) {
+        neurons[i].setDelta(deltas[i]);
+    }
+}
+
+/**
+ * @brief Updates the weights of the neurons in the layer using the given inputs and learning rate.
+ * @param inputs The inputs to the layer.
+ * @param learningRate The learning rate for weight updates.
+ */
+void NeuralLayer::updateWeights(const std::vector<double>& inputs, double learningRate) {
+    for (auto& neuron : neurons) {
+        neuron.updateWeights(inputs, learningRate);
+    }
+}

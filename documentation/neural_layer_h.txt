@@ -1,0 +1,50 @@
+#ifndef NEURAL_LAYER_H
+#define NEURAL_LAYER_H
+
+#include <vector>
+#include "neuron.h"
+
+/**
+ * @class NeuralLayer
+ * @brief Represents a layer of neurons in a neural network.
+ */
+class NeuralLayer {
+public:
+    /**
+     * @brief Constructs a NeuralLayer with a specified number of neurons and inputs per neuron.
+     * @param numNeurons The number of neurons in the layer.
+     * @param numInputsPerNeuron The number of inputs each neuron receives.
+     */
+    NeuralLayer(int numNeurons, int numInputsPerNeuron);
+
+    /**
+     * @brief Activates the layer with the given inputs.
+     * @param inputs The inputs to the layer.
+     * @return The outputs of the layer after activation.
+     */
+    std::vector<double> activate(const std::vector<double>& inputs);
+
+    /**
+     * @brief Gets the outputs of the layer.
+     * @return The outputs of the layer.
+     */
+    std::vector<double> getOutputs() const;
+
+    /**
+     * @brief Sets the deltas for the neurons in the layer.
+     * @param deltas The deltas to be set.
+     */
+    void setDeltas(const std::vector<double>& deltas);
+
+    /**
+     * @brief Updates the weights of the neurons in the layer using the given inputs and learning rate.
+     * @param inputs The inputs to the layer.
+     * @param learningRate The learning rate for weight updates.
+     */
+    void updateWeights(const std::vector<double>& inputs, double learningRate);
+
+private:
+    std::vector<Neuron> neurons; ///< The neurons in the layer.
+};
+
+#endif // NEURAL_LAYER_H

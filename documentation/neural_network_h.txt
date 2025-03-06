@@ -1,0 +1,59 @@
+#ifndef NEURAL_NETWORK_H
+#define NEURAL_NETWORK_H
+
+#include <vector>
+#include "neural_layer.h"
+
+/**
+ * @class NeuralNetwork
+ * @brief Represents a neural network consisting of multiple layers.
+ */
+class NeuralNetwork {
+public:
+    /**
+     * @brief Constructs a NeuralNetwork with a specified architecture.
+     * @param architecture A vector specifying the number of neurons in each layer.
+     */
+    NeuralNetwork(const std::vector<int>& architecture);
+
+    /**
+     * @brief Trains the neural network using the given training data.
+     * @param inputs The input data for training.
+     * @param targets The target output data for training.
+     * @param learningRate The learning rate for training.
+     * @param epochs The number of training epochs.
+     */
+    void train(const std::vector<std::vector<double>>& inputs, const std::vector<std::vector<double>>& targets, double learningRate, int epochs);
+
+    /**
+     * @brief Predicts the output for a given input.
+     * @param input The input data for prediction.
+     * @return The predicted output.
+     */
+    std::vector<double> predict(const std::vector<double>& input);
+
+private:
+    std::vector<NeuralLayer> layers; ///< The layers of the neural network.
+
+    /**
+     * @brief Performs forward propagation through the network.
+     * @param input The input data for forward propagation.
+     * @return The output of the network after forward propagation.
+     */
+    std::vector<double> forward(const std::vector<double>& input);
+
+    /**
+     * @brief Performs backward propagation through the network.
+     * @param target The target output data for backward propagation.
+     */
+    void backward(const std::vector<double>& target);
+
+    /**
+     * @brief Updates the weights of the network using the given learning rate.
+     * @param inputs The input data for weight updates.
+     * @param learningRate The learning rate for weight updates.
+     */
+    void updateWeights(const std::vector<double>& inputs, double learningRate);
+};
+
+#endif // NEURAL_NETWORK_H

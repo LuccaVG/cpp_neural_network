@@ -1,0 +1,43 @@
+#ifndef MEMORY_H
+#define MEMORY_H
+
+#include <vector>
+#include <string>
+
+/**
+ * @class Memory
+ * @brief Represents a memory module for storing and retrieving data.
+ */
+class Memory {
+public:
+    /**
+     * @brief Adds a new entry to the memory.
+     * @param input The input data to be stored.
+     * @param output The output data to be stored.
+     */
+    void addEntry(const std::string& input, const std::string& output);
+
+    /**
+     * @brief Retrieves the output corresponding to a given input.
+     * @param input The input data for which the output is to be retrieved.
+     * @return The output data corresponding to the input.
+     */
+    std::string getOutput(const std::string& input) const;
+
+    /**
+     * @brief Loads memory data from a file.
+     * @param filename The name of the file from which to load the data.
+     */
+    void loadFromFile(const std::string& filename);
+
+    /**
+     * @brief Saves memory data to a file.
+     * @param filename The name of the file to which to save the data.
+     */
+    void saveToFile(const std::string& filename) const;
+
+private:
+    std::vector<std::pair<std::string, std::string>> memoryData; ///< The memory data stored as pairs of input and output strings.
+};
+
+#endif // MEMORY_H
