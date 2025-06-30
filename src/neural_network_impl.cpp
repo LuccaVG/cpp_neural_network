@@ -1,5 +1,8 @@
 #include "neural_network.h"
-#include "optimizers/optimizer.h"
+#include "optimizers/sgd.h"
+#include "optimizers/adam.h"
+#include "optimizers/momentum.h"
+#include "optimizers/rmsprop.h"
 #include "core/loss.h"
 #include <fstream>
 #include <stdexcept>
@@ -18,8 +21,23 @@ void NeuralNetwork::addLayer(std::unique_ptr<Layer> layer) {
 void NeuralNetwork::compile(OptimizerType optimizerType, LossType lossType, double learningRate) {
     this->lossType = lossType;
     
-    // Create optimizer using factory method
-    optimizer = Optimizer::create(optimizerType, learningRate);
+    // Create optimizer based on type
+    switch (optimizerType) {
+        case OptimizerType::SGD:
+            optimizer = std::make_unique<SGD>();
+            break;
+        case OptimizerType::ADAM:
+            optimizer = std::make_unique<Adam>();
+            break;
+        case OptimizerType::MOMENTUM:
+            optimizer = std::make_unique<Momentum>();
+            break;
+        case OptimizerType::RMSPROP:
+            optimizer = std::make_unique<RMSProp>();
+            break;
+        default:
+            throw std::runtime_error("Unsupported optimizer type");
+    }
     
     // Create loss function
     loss = Loss::create(lossType);

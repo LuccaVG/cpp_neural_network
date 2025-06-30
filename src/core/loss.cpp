@@ -40,6 +40,10 @@ std::vector<double> MeanSquaredError::calculateGradient(const std::vector<double
     return grad;
 }
 
+std::vector<double> MeanSquaredError::gradient(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    return calculateGradient(predicted, target);
+}
+
 // BinaryCrossEntropy implementation
 double BinaryCrossEntropy::calculate(const std::vector<double>& predicted, const std::vector<double>& target) const {
     if (predicted.size() != target.size()) {
@@ -73,6 +77,10 @@ std::vector<double> BinaryCrossEntropy::calculateGradient(const std::vector<doub
     return grad;
 }
 
+std::vector<double> BinaryCrossEntropy::gradient(const std::vector<double>& predicted, const std::vector<double>& target) const {
+    return calculateGradient(predicted, target);
+}
+
 // Factory method implementation
 std::unique_ptr<Loss> Loss::create(LossType type) {
     switch (type) {
@@ -80,12 +88,7 @@ std::unique_ptr<Loss> Loss::create(LossType type) {
             return std::make_unique<MeanSquaredError>();
         case LossType::BINARY_CROSS_ENTROPY:
             return std::make_unique<BinaryCrossEntropy>();
-        case LossType::CATEGORICAL_CROSS_ENTROPY:
-            return std::make_unique<CategoricalCrossEntropy>();
         default:
-            throw std::invalid_argument("Unsupported loss function type");
+            throw std::runtime_error("Unsupported loss type");
     }
 }
-
-// Remove or modify the line that's causing the "no member gradient" error
-// Likely on line 68 - replace with proper implementation or remove it

@@ -26,7 +26,7 @@ int main() {
     nn.addLayer(std::make_unique<DenseLayer>(4, 1, ActivationType::SIGMOID));
 
     // Compile the network
-    nn.compile(OptimizerType::ADAM, 0.01);
+    nn.compile(OptimizerType::ADAM, LossType::MEAN_SQUARED_ERROR, 0.01);
 
     // Create XOR training data
     std::vector<std::vector<double>> xorInputs = {
