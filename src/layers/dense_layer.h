@@ -18,6 +18,10 @@ private:
     std::vector<double> lastOutput;
     std::vector<double> lastActivatedOutput;
     std::vector<double> inputGradient;
+    
+    // Gradients for parameter updates
+    std::vector<std::vector<double>> weightGradients;
+    std::vector<double> biasGradients;
 
 public:
     DenseLayer(size_t inputSize, size_t outputSize, ActivationType activation = ActivationType::SIGMOID);

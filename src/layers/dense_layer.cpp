@@ -27,6 +27,10 @@ DenseLayer::DenseLayer(size_t inputSize, size_t outputSize, ActivationType activ
     lastOutput.resize(outputSize);
     lastActivatedOutput.resize(outputSize);
     inputGradient.resize(inputSize);
+    
+    // Initialize gradient storage
+    weightGradients.resize(outputSize, std::vector<double>(inputSize, 0.0));
+    biasGradients.resize(outputSize, 0.0);
 }
 
 void DenseLayer::forward(const std::vector<double>& input) {
@@ -53,16 +57,24 @@ std::vector<double> DenseLayer::backward(const std::vector<double>& outputGradie
         throw std::invalid_argument("Output gradient size doesn't match layer output size");
     }
 
-    // Compute gradient of activation function
+    // Compute gradient of activation function with respect to pre-activation
     std::vector<double> activationGrad = Activation::derivative(lastOutput, activation);
     
-    // Element-wise multiply with output gradient
+    // Element-wise multiply with output gradient to get delta
     std::vector<double> delta(outputSize);
     for (size_t i = 0; i < outputSize; ++i) {
         delta[i] = outputGradient[i] * activationGrad[i];
     }
 
-    // Compute input gradient
+    // Compute weight gradients: delta * input^T
+    for (size_t i = 0; i < outputSize; ++i) {
+        for (size_t j = 0; j < inputSize; ++j) {
+            weightGradients[i][j] = delta[i] * lastInput[j];
+        }
+        biasGradients[i] = delta[i];
+    }
+
+    // Compute input gradient: weights^T * delta
     std::fill(inputGradient.begin(), inputGradient.end(), 0.0);
     for (size_t j = 0; j < inputSize; ++j) {
         for (size_t i = 0; i < outputSize; ++i) {
@@ -70,16 +82,21 @@ std::vector<double> DenseLayer::backward(const std::vector<double>& outputGradie
         }
     }
 
-    return delta; // Return delta for parameter updates
+    return inputGradient; // Return input gradient for previous layer
 }
 
 void DenseLayer::updateParameters(Optimizer& optimizer, int iteration) {
-    // This is a simplified version - in a full implementation,
-    // you'd compute weight and bias gradients and use the optimizer
-    // For now, we'll implement a simple gradient descent
+    double learningRate = 0.01; // Default learning rate
     
-    // Note: This is incomplete - would need proper gradient computation
-    // and optimizer interface implementation
+    // Update weights using gradients
+    for (size_t i = 0; i < outputSize; ++i) {
+        optimizer.update(weights[i], weightGradients[i], learningRate);
+    }
+    
+    // Update biases using gradients (simple gradient descent)
+    for (size_t i = 0; i < outputSize; ++i) {
+        biases[i] -= learningRate * biasGradients[i];
+    }
 }
 
 std::vector<double> DenseLayer::getOutput() const {
