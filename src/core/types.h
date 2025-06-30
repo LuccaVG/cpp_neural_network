@@ -1,5 +1,3 @@
-// filepath: c:\Users\lucca\Desktop\cpp_neural_network_prototype\src\core\types.h
-
 #ifndef TYPES_H
 #define TYPES_H
 
@@ -18,7 +16,15 @@ enum class ActivationType {
     LEAKY_RELU,
     ELU,
     SOFTMAX,
-    SWISH
+    SWISH,
+    GELU,
+    SELU,
+    MISH,
+    HARD_SIGMOID,
+    HARD_TANH,
+    EXPONENTIAL,
+    SOFTPLUS,
+    SOFTSIGN
 };
 
 /**
@@ -29,7 +35,10 @@ enum class LossType {
     BINARY_CROSS_ENTROPY,
     CATEGORICAL_CROSS_ENTROPY,
     HUBER_LOSS,
-    MEAN_ABSOLUTE_ERROR
+    MEAN_ABSOLUTE_ERROR,
+    SPARSE_CATEGORICAL_CROSS_ENTROPY,
+    FOCAL_LOSS,
+    HINGE_LOSS
 };
 
 /**
@@ -41,7 +50,9 @@ enum class OptimizerType {
     RMSPROP,
     ADAM,
     ADAGRAD,
-    ADADELTA
+    ADADELTA,
+    ADAMAX,
+    NADAM
 };
 
 /**

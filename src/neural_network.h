@@ -24,7 +24,7 @@ public:
     void save(const std::string& filename) const;
     void load(const std::string& filename);
 
-private:
+protected:
     std::vector<std::unique_ptr<Layer>> layers;
     std::unique_ptr<Optimizer> optimizer;
     std::unique_ptr<Loss> loss;
