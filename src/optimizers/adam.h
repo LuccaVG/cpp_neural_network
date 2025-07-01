@@ -8,7 +8,6 @@
 
 class Adam : public Optimizer {
 private:
-    double learningRate;
     double beta1;
     double beta2;
     double epsilon;
@@ -17,17 +16,11 @@ private:
     int t;  // Timestep
 
 public:
-    Adam(double learningRate = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 1e-8);
+    Adam(double beta1 = 0.9, double beta2 = 0.999, double epsilon = 1e-8);
 
     void update(std::vector<double>& weights, 
                 const std::vector<double>& gradients,
-                int iteration) override;
-
-    std::unique_ptr<Optimizer> clone() const override;
-
-    void reset() override;
-
-    OptimizerType getType() const override;
+                double learningRate) override;
 };
 
 #endif // ADAM_H

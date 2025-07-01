@@ -94,19 +94,33 @@ void DenseLayer::updateParameters(Optimizer& optimizer, int iteration) {
         }
     }
     
-    // Update weights using optimizer
-    optimizer.update(flatWeights, weightGradients, 0.01); // Learning rate
+    // Combine weights and biases into single parameter vector
+    std::vector<double> allParams;
+    std::vector<double> allGradients;
     
-    // Unflatten weights
+    // Add weights
+    allParams.insert(allParams.end(), flatWeights.begin(), flatWeights.end());
+    allGradients.insert(allGradients.end(), weightGradients.begin(), weightGradients.end());
+    
+    // Add biases
+    allParams.insert(allParams.end(), biases.begin(), biases.end());
+    allGradients.insert(allGradients.end(), lastDelta.begin(), lastDelta.end());
+    
+    // Single optimizer update call
+    optimizer.update(allParams, allGradients, 0.01);
+    
+    // Extract updated weights
     size_t idx = 0;
     for (size_t i = 0; i < outputSize; ++i) {
         for (size_t j = 0; j < inputSize; ++j) {
-            weights[i][j] = flatWeights[idx++];
+            weights[i][j] = allParams[idx++];
         }
     }
     
-    // Update biases using optimizer
-    optimizer.update(biases, lastDelta, 0.01); // Learning rate
+    // Extract updated biases
+    for (size_t i = 0; i < outputSize; ++i) {
+        biases[i] = allParams[idx++];
+    }
 }
 
 std::vector<double> DenseLayer::getOutput() const {

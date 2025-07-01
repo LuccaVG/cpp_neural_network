@@ -2,7 +2,7 @@
 #include "../src/neural_network.h"
 #include "../src/core/activation.h"
 #include "../src/core/loss.h"
-#include "../src/optimizers/adam.h"
+#include "../src/optimizers/optimizer.h"
 #include "../src/layers/dense_layer.h"
 
 class NeuralNetworkTest : public ::testing::Test {

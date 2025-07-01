@@ -1,9 +1,5 @@
 #include <gtest/gtest.h>
 #include "optimizer.h"
-#include "sgd.h"
-#include "momentum.h"
-#include "rmsprop.h"
-#include "adam.h"
 
 class OptimizerTests : public ::testing::Test {
 protected:

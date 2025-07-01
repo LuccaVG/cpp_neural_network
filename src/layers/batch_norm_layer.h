@@ -10,27 +10,33 @@
 class BatchNormLayer : public Layer {
 private:
     size_t inputSize;
+    double momentum;
     double epsilon;
     std::vector<double> gamma; // Scale parameter
     std::vector<double> beta;  // Shift parameter
     std::vector<double> runningMean; // Running mean for inference
-    std::vector<double> runningVar;  // Running variance for inference
+    std::vector<double> runningVariance;  // Running variance for inference
     std::vector<double> lastInput; // Store last input for backward pass
-    std::mt19937 rng;
+    std::vector<double> lastOutput; // Store last output
+    std::vector<double> gradGamma; // Gradients for gamma
+    std::vector<double> gradBeta;  // Gradients for beta
+    std::vector<double> inputGradient; // Input gradients
+    bool isTraining = true;
 
 public:
-    BatchNormLayer(size_t inputSize, double epsilon = 1e-5);
+    BatchNormLayer(size_t inputSize, double momentum = 0.99, double epsilon = 1e-5);
 
-    std::vector<double> forward(const std::vector<double>& input, bool training) override;
+    // Base Layer interface
+    void forward(const std::vector<double>& input) override;
     std::vector<double> backward(const std::vector<double>& outputGradient) override;
     void updateParameters(Optimizer& optimizer, int iteration) override;
-    size_t getParameterCount() const override;
-    size_t getOutputSize() const override;
-    LayerType getType() const override;
-    std::string getName() const override;
-    void saveParameters(std::ofstream& file) const override;
-    void loadParameters(std::ifstream& file) override;
-    void reset() override;
+    std::vector<double> getOutput() const override;
+    std::vector<double> getInputGradient() const override;
+    void save(std::ofstream& file) const override;
+    void load(std::ifstream& file) override;
+    
+    // Additional methods for training/inference mode
+    void setTraining(bool training) { isTraining = training; }
 };
 
 #endif // BATCH_NORM_LAYER_H
